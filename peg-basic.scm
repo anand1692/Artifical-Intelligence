@@ -55,18 +55,30 @@
 	(if (null? child-states) state-list
 		(cons (car child-states) (append-child-states (cdr child-states) state-list))))
 
-(define (dfs state-list goal-state) 
-;	(display state-list) (newline)
-	(if (or (null? state-list) (null? goal-state)) #f
+(define (dfs state-list goal-state final-states) 
+	;(display state-list) (newline)
+	(if (or (null? state-list) (null? goal-state)) '();(begin (display #f) (display final-states) (newline))
 		(let ((cur-state (car state-list)))
-			(if (null? cur-state) (dfs (cdr state-list) goal-state)
-				;((display cur-state) (newline) 
-				 (if (equal? cur-state goal-state) (begin (display '(#t)) (newline) (display cur-state) (newline))
+			(if (null? cur-state) (dfs (cdr state-list) goal-state final-states)
+				 (if (equal? cur-state goal-state) (append (list cur-state) (list #t));(begin (display #t) (newline) (display cur-state) (newline) (display final-states) (newline))
 					(let ((child-states (get-children cur-state)))
-						(if (null? child-states) (dfs (cdr state-list) goal-state)
+						(if (null? child-states) (dfs (cdr state-list) goal-state final-states)
 							(begin
-							(dfs (append-child-states child-states (cdr state-list)) goal-state)
+							;(display '(cur-state -)) (display cur-state) (display '(child-states -)) (display child-states) (newline)
+							(let (( result (dfs (append-child-states child-states (cdr state-list)) goal-state final-states)))
+								;(display result) (newline)
+								(if (null? result) result
+									(if (null? (car result)) result
+										(if (member (car result) child-states) (append (list cur-state) result)
+											result))))
+							;(display '(final states -)) (display final-states) (newline)
 							;(display cur-state) (newline)
 							))))))))
 
+(define (peg-basic state-list goal-state)
+	(if (or (null? state-list) (null? goal-state)) (begin (display #f) (display '(Incorrect Format!)) (newline))
+		(let ((final-states '()))
+			(let ((final-states (dfs state-list goal-state final-states)))
+				(if (null? final-states) #f
+					(begin (display final-states)(newline)))))))
 	
