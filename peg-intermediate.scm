@@ -57,16 +57,26 @@
 
 (define (dfs state-list goal-state) 
 ;	(display state-list) (newline)
-	(if (or (null? state-list) (null? goal-state)) #f
+	(if (or (null? state-list) (null? goal-state)) '()
 		(let ((cur-state (car state-list)))
 			(if (null? cur-state) (dfs (cdr state-list) goal-state)
 				;((display cur-state) (newline) 
-				 (if (equal? cur-state goal-state) (begin (display '(#t)) (newline) (display cur-state) (newline))
+				 (if (equal? cur-state goal-state) (append (list cur-state) (list #t));(begin (display #t) (newline) (display cur-state) (newline) (display final-states) (newline))
 					(let ((child-states (get-children cur-state)))
 						(if (null? child-states) (dfs (cdr state-list) goal-state)
 							(begin
-							(dfs (append-child-states child-states (cdr state-list)) goal-state)
+							(let (( result (dfs (append-child-states child-states (cdr state-list)) goal-state)))
+								;(display result) (newline)
+								(if (null? result) result
+									(if (null? (car result)) result
+										(if (member (car result) child-states) (append (list cur-state) result)
+											result))))
 							;(display cur-state) (newline)
 							))))))))
 
 	
+(define (peg-inter state-list goal-state)
+	(if (or (null? state-list) (null? goal-state)) (begin (display #f) (newline) (display '(Wrong Format!)) (newline))
+		(let ((final-states (dfs state-list goal-state)))
+			(if (null? final-states) #f
+				(begin (display final-states)(newline))))))
