@@ -74,9 +74,29 @@
 							;(display cur-state) (newline)
 							))))))))
 
+(define (get-new-peg cur-state next-state)
+	(if (member (car next-state) cur-state) (get-new-peg cur-state (cdr next-state))
+		(car next-state)))
+
+(define (get-move cur-state poss-moves next-state)
+	(if (and (member (car (reverse (car poss-moves))) cur-state) (not (member (car (reverse (car poss-moves))) next-state))) (reverse (car poss-moves))
+		(get-move cur-state (cdr poss-moves) next-state)))
+
+(define (extract-moves final-states next-state)
+	(if (null? final-states) '()
+		(if (null? (cdr next-state)) (list (append (car final-states) next-state))
+			;(if (null? (cdr (cdr next-state))) (list (car final-states))
+				(let ((new-peg (get-new-peg (car final-states) next-state)))
+					(let ((poss-moves (list-ref all-moves (- new-peg 1))))
+						(let ((move (get-move (car final-states) poss-moves next-state)))
+						;	(display move) (newline)
+							(append (list move) (extract-moves (cdr final-states) (car (cdr (cdr final-states)))))))))));)		
 	
-(define (peg-inter state-list goal-state)
-	(if (or (null? state-list) (null? goal-state)) (begin (display #f) (newline) (display '(Wrong Format!)) (newline))
-		(let ((final-states (dfs state-list goal-state)))
+(define (peg-intermediate state-list goal-state)
+	(if (or (null? state-list) (null? goal-state)) (begin (display #f) (display '(Incorrect Input!)) (newline))
+		(let ((final-states (dfs (list state-list) goal-state)))
 			(if (null? final-states) #f
-				(begin (display final-states)(newline))))))
+				(if (equal? (car final-states) goal-state) #t
+					(begin (display '(state of board: )) (display final-states) (newline)
+						(let ((moves (extract-moves final-states (car (cdr final-states)))))
+							(display '(moves made: )) (display moves) (newline))))))))
