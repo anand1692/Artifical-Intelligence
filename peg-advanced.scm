@@ -1,18 +1,21 @@
-; Assignment 3 - Basic Implementation of Cracker Barrel's Peg game in Scheme
+; Assignment 3 - Advanced Implementation of Cracker Barrel's Peg game in Scheme (half done - forward BFS implemented)
 ;
-; The algorithm uses depth-first-search algorithm to determine if a given goal state can be reached 
+; The algorithm uses bi-direcitonal breadth-first-search algorithm to determine if a given goal state can be reached 
 ; from a given initial state. Goal state and Initial state are the two input parameters.
+
+; The program searches forward from intial state and backwards from goal state. The place where the any of the state in the
+; forward and backward search intersect, will be the converging point. Hence the run time will be reduced to half.
+;
 ; The program uses backtracking concept to determine the path from the initial state to the goal state. 
 ; At the end, if the goal-state is reachable,  all the required moves in forward order 
 ; and the state of the board after each move is displayed back to the user. 
 ;
-; In this implementation, there are total 15 pegs arranged in a form of a triangle and each position
+; In this implementation, there are total 10 pegs arranged in a form of a triangle and each position
 ; is represented by a number. It looks like:
-;				1
-;			      2   3
-;			    4   5   6
-;			  7   8   9   10
-;			11  12  13  14  15
+;                               1
+;                             2   3
+;                           4   5   6
+;                         7   8   9   10
 ;
 ; Created by Anand Goyal © 2015, April 2015 
 
@@ -21,13 +24,10 @@
 ; The peg can only move if it can jump over an immediate adjacent peg. Hence at the end of
 ; each legal move, there will be one peg less on the board. 
 ;
+
 (define all-moves '(((1 2 4) (1 3 6)) ((2 4 7) (2 5 9)) ((3 5 8) (3 6 10))
-		    ((4 7 11) (4 8 13) (4 5 6) (4 2 1)) ((5 8 12) (5 9 14))
-		    ((6 9 13) (6 10 15) (6 5 4) (6 3 1)) ((7 4 2) (7 8 9))
-		    ((8 9 10) (8 5 3)) ((9 8 7) (9 5 2)) ((10 6 3) (10 9 8))
-		    ((11 7 4) (11 12 13)) ((12 13 14) (12 8 5)) 
-		    ((13 14 15) (13 12 11) (13 9 6) (13 8 4)) ((14 13 12) (14 9 5))
-		    ((15 14 13) (15 10 6))))
+		    ((4 5 6) (4 2 1)) () ((6 5 4) (6 3 1)) ((7 4 2) (7 8 9))
+		    ((8 9 10) (8 5 3)) ((9 8 7) (9 5 2)) ((10 6 3) (10 9 8))))
 
 ; This function takes the current state of the board as open list and a list of all possible moves 
 ; from a particular peg on the board, as input. It then validates and returns a list of 
@@ -55,18 +55,18 @@
 						(append legal-moves (gen-moves state-list (car (cdr (memq elem state-list)))))))))))
 
 ; This function removes a particular peg from the particular state of the current board.
-;
+; 
 (define (delete state-list elem)	
 	(if (equal? elem (car state-list)) (cdr state-list)
 		(cons (car state-list) (delete (cdr state-list) elem))))
 
 ; This function adds a particular peg to a particular state on the current board and inserts into the list
-; in ascending order.	
-;
+; in ascending order.   
+;	
 (define (add state-list elem)
 	(if (null? state-list) (cons elem state-list)
-		(if (> (car state-list) elem) (cons elem state-list)
-			(cons (car state-list) (add (cdr state-list) elem)))))
+	(if (> (car state-list) elem) (cons elem state-list)
+		(cons (car state-list) (add (cdr state-list) elem)))))
 
 ; This function applies the list of legal moves on the current state of board and generates a new state for 
 ; each of the move made. It returns a list of new states of the board created after making each legal move 
@@ -91,35 +91,35 @@
 			(if (null? legal-moves) '()
 				(apply-moves state-list legal-moves)))))
 
-; This function appends the children of the current-state to the front of the list after popping the current state.
-; The children are appended to the front of the list as the prime feature of DEPTH-FIRST search.
+; This function appends the children of the current-state to the end of the list after popping the current state.
+; The children are appended to the end of the list as the prime feature of BREADTH-FIRST search.
 ;
 (define (append-child-states child-states state-list)
 	(if (null? child-states) state-list
-		(cons (car child-states) (append-child-states (cdr child-states) state-list))))
+		(append (append-child-states (cdr child-states) state-list) (list (car child-states)))))
 
-; This is the main DEPTH-FIRST search function which maintains the open list from the algorithm, called the state-list, which contains 
+; This is the main BREADTH-FIRST search function which maintains the open list from the algorithm, called the state-list, which contains 
 ; the list of all the states of the board after making all possible legal moves from each state. The algorithm explores
 ; depth first, i.e., one particular parent node completely before on to the next node at the same level. 
 ; The algorithm is as follows:
 ;
 ; 1. Pop the state at the front of the list. Let this be the current state.
-; 2. Check if the current state is the goal state. If yes, return.
-; 3. If no, generate all the possible legal child states of the current state and add them to the front of the list.
-; 4. Recurse by again popping the front of the list.
+; 2. Generate all the possible legal child states of the current state and check if any of the child states is a goal state.
+;    If no, add the child states to the end of the list.
+; 3. Recurse by again popping the front of the list.
 ;
 ; Once the goal state is reached, the algorithm backtracks and generates a list of all the intermediate states.
 ; If the goal state is reachable, this list of intermediate states is returned, else a null list is returned. 
 ;
-(define (dfs state-list goal-state) 
+(define (bfs state-list goal-state) 
 	(if (or (null? state-list) (null? goal-state)) '()
 		(let ((cur-state (car state-list)))
-			(if (null? cur-state) (dfs (cdr state-list) goal-state)
+			(if (null? cur-state) (bfs (cdr state-list) goal-state)
 				 (if (equal? cur-state goal-state) (append (list cur-state) (list #t))
 					(let ((child-states (get-children cur-state)))
-						(if (null? child-states) (dfs (cdr state-list) goal-state)
+						(if (null? child-states) (bfs (cdr state-list) goal-state)
 							(begin
-							(let (( result (dfs (append-child-states child-states (cdr state-list)) goal-state)))
+							(let (( result (bfs (append-child-states child-states (cdr state-list)) goal-state)))
 								(if (null? result) result
 									(if (null? (car result)) result
 										(if (member (car result) child-states) (append (list cur-state) result)
@@ -157,9 +157,9 @@
 ; state is reached or not correspondingly. If the return value is true, it also returns the list of moves made to reach the goal
 ; state and the state of the board after each move is made.
 ;
-(define (peg-basic state-list goal-state)
+(define (peg-advanced state-list goal-state)
 	(if (or (null? state-list) (null? goal-state)) (begin (display #f) (display '(Incorrect Input!)) (newline))
-		(let ((final-states (dfs (list state-list) goal-state)))
+		(let ((final-states (bfs (list state-list) goal-state)))
 			(if (null? final-states) #f
 				(if (equal? (car final-states) goal-state) #t
 					(begin (display '(state of board: )) (display final-states) (newline)
