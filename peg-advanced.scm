@@ -1,4 +1,4 @@
-; Assignment 3 - Advanced Implementation of Cracker Barrel's Peg game in Scheme (half done - forward BFS implemented)
+; Assignment 4 - Advanced Implementation of Cracker Barrel's Peg game in Scheme (half done - forward BFS implemented)
 ;
 ; The algorithm uses bi-direcitonal breadth-first-search algorithm to determine if a given goal state can be reached 
 ; from a given initial state. Goal state and Initial state are the two input parameters.

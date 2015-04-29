@@ -1,4 +1,4 @@
-; Assignment 3 - Intermediate Implementation of Cracker Barrel's Peg game in Scheme
+; Assignment 4 - Intermediate Implementation of Cracker Barrel's Peg game in Scheme
 ;
 ; The algorithm uses depth-first-search algorithm to determine if a given goal state can be reached 
 ; from a given initial state. Goal state and Initial state are the two input parameters.
