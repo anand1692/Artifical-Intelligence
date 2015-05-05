@@ -15,7 +15,7 @@
 
 (define (generate-member size domain)
 	(if (zero? size) '()
-		(append (list (random domain)) (generate-member (- size 1) domain))))
+		(append (list (+ (random domain) 1)) (generate-member (- size 1) domain))))
 
 (define (generate-pop size num domain)
 	(if (zero? num) '()
@@ -70,7 +70,7 @@
 (define (mutate-mem mem domain mutation-rate)
 	(if (null? mem) '()
 		(if (< (random domain) mutation-rate) 
-			(append (list (random domain)) (mutate-mem (cdr mem) domain mutation-rate))
+			(append (list (+ (random domain) 1)) (mutate-mem (cdr mem) domain mutation-rate))
 			(append (list (car mem)) (mutate-mem (cdr mem) domain mutation-rate)))))
 
 (define (mutate-pop eval-pop domain mutation-rate)
@@ -94,7 +94,7 @@
 		(/ (/ (calc-fitness-sum pop) size) 1.0)))
 
 (define (create-new-gen gens init-pop pop-size domain select-size mutation-rate best-mem my-eval-func)
-	(if (zero? gens) (get-best-member init-pop) ;(begin (display '(best mem :-)) (display best-mem) (newline)); (get-best-member init-pop)
+	(if (zero? gens) best-mem ;(begin (display '(best mem :-)) (display best-mem) (newline)); (get-best-member init-pop)
 		;(let ((pop (generate-pop 6 8 20)))
 			(let ((eval-pop (evaluate-pop init-pop my-eval-func)))
 			;	(display eval-pop) (newline)
@@ -112,5 +112,6 @@
 (define (search-ga my-eval-func)
 	(let ((pop (generate-pop 6 50 20)))
 		(let ((gens (/ 50000 50)))
-			(create-new-gen gens pop 50 20 25 10 '() my-eval-func)))) 
-
+			(let ((best (create-new-gen gens pop 50 20 25 10 '() my-eval-func)))
+				(display '(best mem :)) (display (cdr best)) (newline) 
+				(display '(fitness value :)) (display (car best)) (newline)))))
