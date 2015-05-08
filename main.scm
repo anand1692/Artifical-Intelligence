@@ -36,7 +36,7 @@
 
 ; The fitness function to calculate the fitness value of member.
 
-(define (my-eval-fn alist) 
+(define (my-fn alist) 
 	(let ((a (get-nth 1 alist)))
 		(let ((b (get-nth 2 alist)))
 			(let ((c (get-nth 3 alist)))
