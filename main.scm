@@ -20,6 +20,8 @@
 ;	3) Choosing cross-over point = random
 ;	4) Mutation Rate = 10
 ;
+; Total time taken to display the result = 15 seconds.
+;
 ; The above cycle goes on untill the "my-eval-fn" is called a maximum of 50,000 times. 
 ; In the end, the best member giving the highest fitness value, across all generations, is returned back.
 ;
