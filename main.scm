@@ -197,7 +197,7 @@
 
 (define (search-ga my-eval-func)
 	(let ((pop (generate-pop 6 50 20)))
-		(let ((gens (/ 50000 50)))
+		(let ((gens (/ 49950 50)))
 			(let ((best (create-new-gen gens pop 50 20 25 10 '() my-eval-func)))
 				(display '(best mem :)) (display (cdr best)) (newline) 
 				(display '(fitness value :)) (display (car best)) (newline)))))
