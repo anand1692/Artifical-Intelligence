@@ -36,7 +36,7 @@
 (define (resolve alist blist)
 	(if (null? alist) blist
 		(if (null? blist) alist
-			(if (check_contradiction alist blist) '(CONTRADICTION) 
+			(if (check_contradiction alist blist) 'CONTRADICTION 
 			  (let* ((tlist1 (argsplit_true alist))
 					 (flist1 (argsplit_false alist))
 				     (tlist2 (argsplit_true blist))
@@ -45,8 +45,9 @@
 				     (clist2 (compare_combine flist2 tlist1)))
 				  ;   (display clist1) (newline) (display clist2) (newline)
 				     (let ((final (dedupe (append clist1 clist2))))
-						(if (null? final) #f
-							(if (equal? (length final) (+ (length alist) (length blist))) #f
-								final))))))))
+						(cond ((null? final) #f)
+							  ((equal? (length final) (+ (length alist) (length blist))) #f)
+							  ((> (- (+ (length alist) (length blist)) (length final)) 2) #f)
+							  (else	final))))))))
 		  
 		  
