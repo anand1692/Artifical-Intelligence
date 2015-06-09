@@ -43,6 +43,9 @@
 ;Current direction of the agent, intially set to 'east
 (define my-dir '(east))
 
+; Previous direction of the agent, initially set to the current direction
+(define prev-my-dir '(east))
+
 ;Get positions of each element of the first percept - length 3 
 (define (get-list1 cur_pos)
 	(cond ((equal? my-dir '(east))  (let* ((a (append (list (+ (car cur_pos) 1)) (list (+ (car (cdr cur_pos)) 1))))
@@ -306,13 +309,21 @@
 		  ((equal? (list (car (car prev-events))) '(attacked-by)) #t)
 		  (else (check-pred-attack (cdr prev-events)))))
 
+; Function to check if agent has turned left
+(define (check-if-turn-left)
+	(cond ((and (equal? my-dir '(east)) (equal? prev-my-dir '(south))) #t)
+		  ((and (equal? my-dir '(west)) (equal? prev-my-dir '(north))) #t)
+		  ((and (equal? my-dir '(north)) (equal? prev-my-dir '(east))) #t)
+		  ((and (equal? my-dir '(south)) (equal? prev-my-dir '(west))) #t)
+		  (else #f)))
+
 ; Function to get the next move of the agent, in case it has been attacked in the previous turn by a predator
 (define (move-after-attack percepts)
 	(cond ((and (equal? (list-ref (car percepts) 1) 'empty) 
 				(equal? (list-ref (car (cdr percepts)) 2) 'empty)) "MOVE-AGGRESSIVE-2")
 		  ((equal? (list-ref (car percepts) 1) 'empty) "MOVE-AGGRESSIVE-1")
 		  ((equal? (list-ref (car percepts) 1) 'barrier) (if (check-right-bound percepts) "TURN-LEFT" "TURN-RIGHT"))
-		  (else (if (check-right-bound percepts) "TURN-LEFT" "TURN-RIGHT")))) 
+		  (else (if (check-if-turn-left) "TURN-LEFT" (if (check-right-bound percepts) "TURN-LEFT" "TURN-RIGHT"))))) 
 
 ; Function to get the next move to reach the position "pos" from the current position, based on the agent's current direction
 ; The "pos" is in general the co-ordinates of the nearest vegetation. 
@@ -447,7 +458,7 @@
 ; 	   does not have a barrier in front of it. In this case, it gets the next move towards the nearest
 ; 	   vegetation.	
 (define (find-veg percepts)
-	(if (null? veg-map) "MOVE-AGGRESSIVE-2"
+	(if (null? veg-map) "MOVE-AGGRESSIVE-1"
 		(let* ((nearest-point '(99999 (0 0)))
 		   (veg-pos (get-nearest-veg nearest-point veg-map)))
 			(if (equal? veg-pos nearest-point) (if (check-right-bound percepts) "TURN-LEFT" "TURN-RIGHT")
@@ -457,12 +468,14 @@
 (define (check-barrier percepts)
 	(if (equal? (list-ref (car percepts) 1) 'empty) #f #t))					
 
+
 ; Function that checks conditions and decides what move to make. Currently main conditions checked are :
 ; 	1. If there is a vegetation in front of the agent, eat it. In case the bloom cycle of the vegetation is over
 ; 			then, find the other closest vegetation in sight. If there isn't any vegetation, check boundary and turn
 ; 	2. If the agent is attacked in the previous turn, move accordingly
-; 	3. If there is a vegetation is sight, get the move to go towards it.
-; 	4. If none of the above is true, find the closes vegetation in the vegetation map and move towards it. If there is no
+; 	3. If there is a barrier in front, check the right boundary and turn
+; 	4. If there is a vegetation is sight, get the move to go towards it.
+; 	5. If none of the above is true, find the closes vegetation in the vegetation map and move towards it. If there is no
 ; 			vegetation in the vegetation map, it moves ahead.
 ;
 ; This function is called by the choose-action()
@@ -508,7 +521,9 @@
 
 ; Function to set the current direction to the new direction it is facing
 (define (set-my-dir new-dir)
-	(if (not (equal? new-dir my-dir)) (set! my-dir new-dir)))
+	(if (not (equal? new-dir my-dir)) (begin 
+							          (set! prev-my-dir my-dir)
+									  (set! my-dir new-dir))))
 
 ; Main function, which is the API for the environment simulation. Returns the agent's next move based on 
 ; the percepts the agents sees.
